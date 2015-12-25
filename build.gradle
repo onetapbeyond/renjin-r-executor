@@ -1,0 +1,40 @@
+apply plugin: 'java'
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+description ="""
+Renjin R Analytics Integration Library
+"""
+
+group = "io.onetapbeyond"
+archivesBaseName = "renjin-r-executor"
+version = "1.0"
+
+repositories {
+    jcenter()
+    maven {
+        url "http://nexus.bedatadriven.com/content/groups/public"
+    }
+}
+
+dependencies {
+    compile 'org.slf4j:slf4j-api:1.7.13'
+    compile 'org.renjin:renjin-script-engine:0.7.0-RC8-SNAPSHOT'
+    testCompile 'junit:junit:4.12'
+}
+
+jar {
+  manifest {
+    attributes("Implementation-Title": archivesBaseName,
+               "Implementation-Version": version)
+  }
+}
+
+javadoc {
+    title = "renjin-r-executor"
+    options.overview = "src/main/java/overview.html"
+    exclude "io/onetapbeyond/renjin/r/executor/manager/**/*.java"
+    exclude "io/onetapbeyond/renjin/r/executor/results/**/*.java"
+    exclude "io/onetapbeyond/renjin/r/executor/tasks/**/*.java"
+}

@@ -1,0 +1,49 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+</head>
+<body bgcolor="white">
+
+<p>
+A Java library providing a lightweight solution (~16 kB jar) for integrating
+R analytics executed on the
+<a href="http://www.renjin.org" target="_blank">Renjin interpreter</a> into
+any application running on the JVM.
+The Renjin interpreter provides a JVM-native execution environment for
+scientific computing, reproducible research and data analysis based
+on R. To learn more about the Renjin interpreter,
+see <a href="http://www.renjin.org" target="_blank">here</a>. To learn more
+about the general capabilities of the R programming language and environment
+for statistical computing, see
+<a href="https://www.r-project.org/about.html" target="_blank">here</a>.
+<p><br/>
+<p>
+This library provides the following Renjin integration support:
+<ul>
+<li>Simplified R code execution using {@link io.onetapbeyond.renjin.r.executor.RenjinTask}, no boilerplate {@link javax.script} code required.
+<li>Automatic Renjin runtime pooling for maximum {@link io.onetapbeyond.renjin.r.executor.RenjinTask} concurrency and throughput.
+<li>Distributed cluster environment support through optional {@link io.onetapbeyond.renjin.r.executor.RenjinTask} and {@link io.onetapbeyond.renjin.r.executor.RenjinResult} serialization.
+</ul>
+<p><br>
+
+<p>
+When working with this library the basic usage pattern is as follows:
+<pre> 
+RenjinTask rTask = Renjin.R().code(rCode).input(rInput).build();
+RenjinResult rResult = rTask.execute();
+org.renjin.sexp.SEXP rData = rResult.data();
+</pre>
+</p><br>
+
+<p>
+For example, the following code snippet demonstrates the execution of the
+R stats::rnorm function:
+<pre> 
+RenjinTask rTask = Renjin.R().code("rnorm(n,mean)").input("n", 10).input("mean", 5).build();
+RenjinResult rResult = rTask.execute();
+org.renjin.sexp.SEXP rData = rResult.data();
+</pre>
+</p><br>
+
+</body>
+</html>
