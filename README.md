@@ -27,7 +27,7 @@ compile 'io.onetapbeyond:renjin-r-executor:1.1'
 
 - Simplified R code execution using [RenjinTask](http://www.javadoc.io/doc/io.onetapbeyond/renjin-r-executor/), no boilerplate [javax.script](http://docs.oracle.com/javase/8/docs/api/javax/script/package-summary.html) code required.
 - Automatic Renjin runtime pooling for maximum [RenjinTask](http://www.javadoc.io/doc/io.onetapbeyond/renjin-r-executor/) concurrency and throughput.
-- Distributed cluster environment support through optional [RenjinTask](http://www.javadoc.io/doc/io.onetapbeyond/renjin-r-executor/) and [RenjinResult](http://www.javadoc.io/doc/io.onetapbeyond/renjin-r-executor/) serialization.
+- Distributed cluster environment support through automatic [RenjinTask](http://www.javadoc.io/doc/io.onetapbeyond/renjin-r-executor/) and [RenjinResult](http://www.javadoc.io/doc/io.onetapbeyond/renjin-r-executor/) serialization.
 
 
 ### Usage
