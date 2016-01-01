@@ -5,10 +5,13 @@
 <body bgcolor="white">
 
 <p>
-A Java library providing a lightweight solution (~16 kB jar) for integrating
+A Java library providing a lightweight solution (~12 kB jar) for integrating
 R analytics executed on the
 <a href="http://www.renjin.org" target="_blank">Renjin interpreter</a> into
-any application running on the JVM.
+any application running on the JVM. This library is ideally suited for
+integrating R analytics into new or existing server, middleware and
+cluster computing solutions. 
+<p>
 The Renjin interpreter provides a JVM-native execution environment for
 scientific computing, reproducible research and data analysis based
 on R. To learn more about the Renjin interpreter,
@@ -22,7 +25,7 @@ This library provides the following Renjin integration support:
 <ul>
 <li>Simplified R code execution using {@link io.onetapbeyond.renjin.r.executor.RenjinTask}, no boilerplate {@link javax.script} code required.
 <li>Automatic Renjin runtime pooling for maximum {@link io.onetapbeyond.renjin.r.executor.RenjinTask} concurrency and throughput.
-<li>Distributed cluster environment support through optional {@link io.onetapbeyond.renjin.r.executor.RenjinTask} and {@link io.onetapbeyond.renjin.r.executor.RenjinResult} serialization.
+<li>Distributed cluster environment support through automatic {@link io.onetapbeyond.renjin.r.executor.RenjinTask} and {@link io.onetapbeyond.renjin.r.executor.RenjinResult} serialization.
 </ul>
 <p><br>
 
@@ -31,7 +34,7 @@ When working with this library the basic usage pattern is as follows:
 <pre> 
 RenjinTask rTask = Renjin.R().code(rCode).input(rInput).build();
 RenjinResult rResult = rTask.execute();
-org.renjin.sexp.SEXP rData = rResult.data();
+org.renjin.sexp.SEXP rOutput = rResult.output();
 </pre>
 </p><br>
 
@@ -41,7 +44,7 @@ R stats::rnorm function:
 <pre> 
 RenjinTask rTask = Renjin.R().code("rnorm(n,mean)").input("n", 10).input("mean", 5).build();
 RenjinResult rResult = rTask.execute();
-org.renjin.sexp.SEXP rData = rResult.data();
+org.renjin.sexp.SEXP rOutput = rResult.output();
 </pre>
 </p><br>
 

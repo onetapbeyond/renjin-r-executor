@@ -20,6 +20,8 @@ import io.onetapbeyond.renjin.r.executor.*;
 import org.renjin.sexp.SEXP;
 import org.renjin.primitives.io.serialization.*;
 import java.io.*;
+import java.util.Map;
+import java.util.HashMap;
 
 /*
  * Concrete implementation of Renjin executor task result.
@@ -35,80 +37,80 @@ public class RenjinResultImpl implements RenjinResult {
 	private static final long serialVersionUID = 3871346233619381871L;
 
 	/*
-	 * RenjinResult success indicator.
+	 * Map holding {@link RenjinTask} result data.
 	 */
-	private boolean success;
+	private Map<String,Object> resultMap;
 
-	/*
-	 * RenjinResult error message on failure.
-	 */
-	private String  error;
-
-	/*
-	 * RenjinResult error exception on failure.
-	 */
-	private Throwable cause;
-
-	/*
-	 * RenjinResult result data in SEXP serialized form.
-	 */
-	private byte[] serializedData;
-
-	/*
-	 * RenjinResult result data in SEXP native form.
-	 */
-	private transient SEXP sexpData;
-
-	/*
-	 * RenjinResult task time taken indicator.
-	 */
-	private long timeTaken;
-
-	public RenjinResultImpl(SEXP sexpData, long timeTaken) {
-		this.success = true;
-		this.sexpData = sexpData;
-		this.timeTaken = timeTaken;
-	}
-
-	public RenjinResultImpl(byte[] serializedData, long timeTaken) {
-		this.success = true;
-		this.serializedData = serializedData;
-		this.timeTaken = timeTaken;
-	}
-
-	public RenjinResultImpl(String error, Throwable cause) {
-		this.success = false;
-		this.error = error;
-		this.cause = cause;
+	public RenjinResultImpl(Map<String,Object> resultMap) {
+		this.resultMap = resultMap;
 	}
 
 	public boolean success() {
-		return success;
+		return (Boolean) resultMap.get("success");
 	}
 
 	public String error() {
-		return error;
+		return (String) resultMap.get("error");
 	}
 
 	public Throwable cause() {
-		return cause;
+		return (Throwable) resultMap.get("cause");
 	}
 
-	public SEXP data() {
+	public Map<String,Object> input() {
 
-		if(serializedData != null) {
-			sexpData = deserializeInput("result", serializedData);
+		Map<String,Object> inputMap = new HashMap();
+
+		boolean inputSerialized = (Boolean) resultMap.get("inputSerialized");
+		Map<String,Object> sexpInputs =
+			(Map<String,Object>) resultMap.get("sexpInputs");
+		Map<String,Object> primInputs =
+			(Map<String,Object>) resultMap.get("primInputs");
+
+		if(sexpInputs != null) {
+			if(inputSerialized) {
+
+				for (Map.Entry<String, Object> pair : sexpInputs.entrySet()) {
+					inputMap.put(pair.getKey(),
+						deserializeSEXP((byte[]) pair.getValue()));
+				}
+
+			} else {
+				inputMap.putAll(sexpInputs);
+			}
 		}
 
-		return sexpData;
+		if(primInputs != null) {
+			inputMap.putAll(primInputs);
+		}
+
+		return inputMap;
+	}
+
+	public SEXP output() {
+
+		boolean outputSerialized = (Boolean) resultMap.get("outputSerialized");
+		Object output = resultMap.get("output");
+
+		if(outputSerialized && output != null) {
+			output = deserializeSEXP((byte[]) output);
+		}
+
+		return (SEXP) output;
 	}
 
 	public long timeTaken() {
-		return timeTaken;
+		return (Long) resultMap.get("timeTaken");
 	}
 
 	public String toString() {
-		return "RenjinResult: [ " + success + " ]";
+		boolean success = (Boolean) resultMap.get("success");
+		if(success) 
+			return "RenjinResult: [ success ]";
+		else {
+			String error = (String) resultMap.get("error");
+			return "RenjinResult: [ failed ], error=" + error;
+		}
 	}
 
 }

@@ -9,7 +9,7 @@ Renjin R Analytics Integration Library
 
 group = "io.onetapbeyond"
 archivesBaseName = "renjin-r-executor"
-version = "1.0"
+version = "1.1"
 
 repositories {
     jcenter()

@@ -109,7 +109,7 @@ public class RenjinSuppliedEngineTests {
                                  .build(suppliedEngine, true);
 
         RenjinResult rResult = rTask.execute();
-        SEXP output = rResult.data();
+        SEXP output = rResult.output();
         assertNotNull(rTask);
         assertTrue(rResult.success());
         assertNotNull(output);
@@ -126,7 +126,7 @@ public class RenjinSuppliedEngineTests {
                       .build(suppliedEngine);
 
         rResult = rTask.execute();
-        output = rResult.data();
+        output = rResult.output();
         assertNotNull(rTask);
         assertFalse(rResult.success());
         assertNotNull(rResult.error());
@@ -152,7 +152,7 @@ public class RenjinSuppliedEngineTests {
                                  .build(suppliedEngine);
 
         RenjinResult rResult = rTask.execute();
-        SEXP output = rResult.data();
+        SEXP output = rResult.output();
         assertNotNull(rTask);
         assertTrue(rResult.success());
         assertNotNull(output);
@@ -169,7 +169,7 @@ public class RenjinSuppliedEngineTests {
                       .build(suppliedEngine);
 
         rResult = rTask.execute();
-        output = rResult.data();
+        output = rResult.output();
         assertNotNull(rTask);
         assertTrue(rResult.success());
         assertNotNull(output);

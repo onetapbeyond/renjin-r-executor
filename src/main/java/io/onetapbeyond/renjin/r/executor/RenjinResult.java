@@ -15,6 +15,7 @@
  */
 package io.onetapbeyond.renjin.r.executor;
 
+import java.util.Map;
 import org.renjin.sexp.SEXP;
 
 /**
@@ -22,10 +23,12 @@ import org.renjin.sexp.SEXP;
  * {@link RenjinTask#execute}. A result instance can be queried
  * to determine success or failure of a task execution.
  * On success, the task result data is made available
- * by the {@link RenjinResult#data} method. On failure,
+ * on the {@link RenjinResult#output} method. On failure,
  * the cause of the failure can be determined by querying
  * the {@link RenjinResult#error} and
- * {@link RenjinResult#cause} methods respecitvely.
+ * {@link RenjinResult#cause} methods respectively. The
+ * original data inputs on the {@link RenjinTask} are made
+ * available on the {@link RenjinResult#input} method.
  */
 public interface RenjinResult extends java.io.Serializable {
 
@@ -54,9 +57,15 @@ public interface RenjinResult extends java.io.Serializable {
 	public long timeTaken();
 
 	/**
-	 * Returns task execution result data.
-	 * @return  result data on task execution success, otherwise null
+	 * Returns data inputs passed on task execution.
+	 * @return  data inputs passed on task execution.
 	 */
-	public SEXP data();
+	public Map<String,Object> input();
+
+	/**
+	 * Returns data outputs generated on task execution.
+	 * @return  data outputs generated on task execution.
+	 */
+	public SEXP output();
 
 }

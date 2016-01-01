@@ -107,7 +107,7 @@ public class RenjinPooledEngineTests {
         Renjin builder = Renjin.R(serializedTasks, serializedResults);
         RenjinTask rTask = builder.code("x<-1").build();
         RenjinResult rResult = rTask.execute();
-        SEXP output = rResult.data();
+        SEXP output = rResult.output();
         assertNotNull(builder);
         assertNotNull(rTask);
         assertTrue(rResult.success());
@@ -123,10 +123,15 @@ public class RenjinPooledEngineTests {
         Renjin builder =Renjin.R(serializedTasks, serializedResults);
         RenjinTask rTask = builder.code("x<-z").input("z", data).build();
         RenjinResult rResult = rTask.execute();
-        SEXP output = rResult.data();
+        Map<String,Object> inputMap = rResult.input();
+        SEXP z = (SEXP) inputMap.get("z");
+        SEXP output = rResult.output();
         assertNotNull(builder);
         assertNotNull(rTask);
         assertTrue(rResult.success());
+        assertNotNull(z);
+        assertTrue(z.length() == 5);
+        assertEquals(data, z);
         assertNotNull(output);
         assertTrue(output.length() == 5);
         assertNull(rResult.error());
@@ -141,10 +146,17 @@ public class RenjinPooledEngineTests {
                                   .input("mean", 5)
                                   .build();
         RenjinResult rResult = rTask.execute();
-        SEXP output = rResult.data();
+        Map<String,Object> inputMap = rResult.input();
+        Integer n = (Integer) inputMap.get("n");
+        Integer mean = (Integer) inputMap.get("mean");
+        SEXP output = rResult.output();
         assertNotNull(builder);
         assertNotNull(rTask);
         assertTrue(rResult.success());
+        assertNotNull(n);
+        assert(n == 10);
+        assertNotNull(mean);
+        assert(mean == 5);
         assertNotNull(output);
         assertNull(rResult.error());
         assertNull(rResult.cause());
@@ -156,9 +168,13 @@ public class RenjinPooledEngineTests {
         RenjinTask rTask = builder.code("x<-n").input("m", 12).build();
         // Input "m" passed, code expect "n", expect !result.success.
         RenjinResult rResult = rTask.execute();
+        Map<String,Object> inputMap = rResult.input();
+        Integer m = (Integer) inputMap.get("m");
         assertNotNull(builder);
         assertNotNull(rTask);
         assertFalse(rResult.success());
+        assertNotNull(m);
+        assert(m == 12);
         assertNotNull(rResult.error());
         assertNotNull(rResult.cause());
         assert(rResult.cause() instanceof org.renjin.eval.EvalException);
@@ -170,9 +186,13 @@ public class RenjinPooledEngineTests {
         RenjinTask rTask = builder.code("x<-2*n").input("n", "bad").build();
         // Input "n" passed but null, expect !result.success.
         RenjinResult rResult = rTask.execute();
+        Map<String,Object> inputMap = rResult.input();
+        String n = (String) inputMap.get("n");
         assertNotNull(builder);
         assertNotNull(rTask);
         assertFalse(rResult.success());
+        assertNotNull(n);
+        assert(n == "bad");
         assertNotNull(rResult.error());
         assertNotNull(rResult.cause());
         assert(rResult.cause() instanceof org.renjin.eval.EvalException);
@@ -183,10 +203,14 @@ public class RenjinPooledEngineTests {
         Renjin builder = Renjin.R(serializedTasks, serializedResults);
         RenjinTask rTask = builder.code("x<-n").input("n", 12).build();
         RenjinResult rResult = rTask.execute();
-        SEXP output = rResult.data();
+        Map<String,Object> inputMap = rResult.input();
+        Integer n = (Integer) inputMap.get("n");
+        SEXP output = rResult.output();
         assertNotNull(builder);
         assertNotNull(rTask);
         assertTrue(rResult.success());
+        assertNotNull(n);
+        assert(n == 12);
         assertNotNull(output);
         assertTrue(output.isNumeric());
         assertNull(rResult.error());

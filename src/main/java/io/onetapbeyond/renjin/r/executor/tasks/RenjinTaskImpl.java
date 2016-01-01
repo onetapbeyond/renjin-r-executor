@@ -47,8 +47,8 @@ public class RenjinTaskImpl implements RenjinTask {
 	private final String code;
 
 	/*
-	 * RenjinTask SEXP input data. If serializableTasks is 
-	 * enabled, data is in serialized form, otherwise data
+	 * RenjinTask SEXP input data. If disableTaskSerialization
+	 * is false, data is in serialized form, otherwise data
 	 * is in native SEXP encoded form.
 	 */
 	private final Map<String,Object> sexpInputs;
@@ -59,14 +59,14 @@ public class RenjinTaskImpl implements RenjinTask {
 	private final Map<String,Object> primInputs;
 
 	/*
-	 * When enabled, all data maintained on RenjinTask are serializable.
+	 * By default, all data maintained on RenjinTask are serialized.
 	 */
-	private boolean serializableTasks;
+	private boolean disableTaskSerialization;
 
 	/*
-	 * When enabled, all data maintained on RenjinTask are serializable.
+	 * By default, all data maintained on RenjinResult are serialized.
 	 */
-	private boolean serializableResults;
+	private boolean disableResultSerialization;
 
 	/*
 	 * Dedicated Renjin ScriptEngine for task, optional.
@@ -89,16 +89,16 @@ public class RenjinTaskImpl implements RenjinTask {
 	public RenjinTaskImpl(String code,
 						  Map<String,Object> sexpInputs,
 						  Map<String,Object> primInputs,
-						  boolean serializableTasks,
-						  boolean serializableResults,
+						  boolean disableTaskSerialization,
+						  boolean disableResultSerialization,
 						  ScriptEngine suppliedEngine,
 						  boolean autoClearSuppliedEngine) {
 
 		this.code = code;
 		this.sexpInputs = sexpInputs;
 		this.primInputs = primInputs;
-		this.serializableTasks = serializableTasks;
-		this.serializableResults = serializableResults;
+		this.disableTaskSerialization = disableTaskSerialization;
+		this.disableResultSerialization = disableResultSerialization;
 		this.suppliedEngine = suppliedEngine;
 		this.autoClearSuppliedEngine = autoClearSuppliedEngine;
 		this.liveEngine = null;
@@ -123,20 +123,17 @@ public class RenjinTaskImpl implements RenjinTask {
 			/*
 			 * Set SEXP data inputs on the Renjin ScriptEngine.
 			 */
-			if(serializableTasks) {
-				// Process serialized SEXP data inputs.
-				for (Map.Entry<String, Object> pair : sexpInputs.entrySet()) {
-					liveEngine.put(pair.getKey(),
-						deserializeInput(pair.getKey(),
-									(byte[]) pair.getValue()));
-				}
-
-			} else {
+			if(disableTaskSerialization) {
 				// Process unserialized SEXP data inputs.
 				for (Map.Entry<String, Object> pair : sexpInputs.entrySet()) {
 					liveEngine.put(pair.getKey(), pair.getValue());
 				}
-
+			} else {
+				// Process serialized SEXP data inputs.
+				for (Map.Entry<String, Object> pair : sexpInputs.entrySet()) {
+					liveEngine.put(pair.getKey(),
+						deserializeSEXP((byte[]) pair.getValue()));
+				}
 			}
 
 			/*
@@ -153,27 +150,27 @@ public class RenjinTaskImpl implements RenjinTask {
 			SEXP output = (SEXP) liveEngine.eval(code);
 			long execend = System.currentTimeMillis();
 
-			if(serializableResults) {
-
-				/*
-				 * Set serialized data on RenjinResult.
-				 */
-				result = new RenjinResultImpl(serializeInput("result", output),
-							(System.currentTimeMillis()-taskStart));
-
-			} else {
+			if(disableResultSerialization) {
 
 				/*
 				 * Set SEXP encoded data on RenjinResult.
 				 */
-				result = new RenjinResultImpl(output,
-							(System.currentTimeMillis()-taskStart));
+				result = new RenjinResultImpl(buildResultMap(output,
+								(System.currentTimeMillis()-taskStart)));
+			} else {
 
+				/*
+				 * Set SEXP serialized data on RenjinResult.
+				 */
+				result =
+					new RenjinResultImpl(buildResultMap(serializeSEXP(output),
+								(System.currentTimeMillis()-taskStart)));
 			}
 
 		} catch(Throwable cause) {
 
-			result = new RenjinResultImpl(cause.getMessage(), cause);
+			result = new RenjinResultImpl(buildResultMap(cause.getMessage(),
+																	cause));
 
 		} finally {
 
@@ -206,39 +203,86 @@ public class RenjinTaskImpl implements RenjinTask {
 		return (autoClearSuppliedEngine && !engineFromPool());
 	}
 
+	/* 
+	 * Build resultMap based on successful task execution data 
+	 * and meta-data to support {@link RenjinResult}.
+	 */
+	private Map<String,Object> buildResultMap(Object output,
+											  long timeTaken) {
+
+		Map<String,Object> resultMap = new HashMap();
+		resultMap.put("success", true);
+		resultMap.put("timeTaken", timeTaken);
+		resultMap.put("output", output);
+		resultMap.put("outputSerialized", !disableResultSerialization);
+		resultMap.putAll(buildInputMap());
+		resultMap.put("error", null);
+		resultMap.put("cause", null);
+		return resultMap;
+	}
+
+	/* 
+	 * Build resultMap based on failed task execution data 
+	 * and meta-data to support {@link RenjinResult}.
+	 */
+	private Map<String,Object> buildResultMap(String error,
+											  Throwable cause) {
+
+		Map<String,Object> resultMap = new HashMap();
+		resultMap.put("success", false);
+		resultMap.put("timeTaken", 0L);
+		resultMap.put("output", null);
+		resultMap.put("outputSerialized", !disableResultSerialization);
+		resultMap.putAll(buildInputMap());
+		resultMap.put("error", error);
+		resultMap.put("cause", cause);
+		return resultMap;
+	}
+
+	/* 
+	 * Build inputMap data and meta-data based on
+	 * {@link RenjinTask} inputs and serialization options.
+	 */
+	private Map<String,Object> buildInputMap() {
+		Map<String,Object> inputMap = new HashMap();
+		inputMap.put("sexpInputs", sexpInputs);
+		inputMap.put("primInputs", primInputs);
+		inputMap.put("inputSerialized", !disableTaskSerialization);
+		return inputMap;
+	}
+
 	private static final Context TLC = Context.newTopLevelContext();
 
-	public static SEXP deserializeInput(String name, byte[] inputData) {
+	public static SEXP deserializeSEXP(byte[] data) {
 
-		SEXP deserializedInput = null;
+		SEXP deserializedSEXP = null;
 
 		try {
 			long start = System.currentTimeMillis();
 			ByteArrayInputStream bais = new
-				        	ByteArrayInputStream(inputData);
+				        	ByteArrayInputStream(data);
 		    RDataReader reader = new RDataReader(TLC, bais);
-		    deserializedInput = reader.readFile();
+		    deserializedSEXP = reader.readFile();
 		} catch(Exception dex) {}
 
-		return deserializedInput;
-
+		return deserializedSEXP;
 	}
 
-	public static byte[] serializeInput(String name, SEXP inputData) {
+	public static byte[] serializeSEXP(SEXP data) {
 
-		byte[] serializedInput = null;
+		byte[] serializedSEXP = null;
 
 		try {
 			long start = System.currentTimeMillis();
 	        ByteArrayOutputStream baos =
 			        	new ByteArrayOutputStream();
 	        RDataWriter writer = new RDataWriter(TLC, baos);
-		    writer.save(inputData);
-			serializedInput = baos.toByteArray();
+		    writer.save(data);
+			serializedSEXP = baos.toByteArray();
 
 		} catch(Exception dex) {}
 
-		return serializedInput;
+		return serializedSEXP;
 	}
 
 	/*
