@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/onetapbeyond/renjin-r-executor.svg?branch=master)](https://travis-ci.org/onetapbeyond/renjin-r-executor)
 
-The renjin-r-executor library offers a lightweight solution (~16 kB jar) for integrating R analytics executed on the
+The renjin-r-executor library offers a lightweight solution (~12 kB jar) for integrating R analytics executed on the
 [Renjin interpreter](http://www.renjin.org) into any application running on the JVM. This library is ideally suited for integrating R analytics into new or existing server, middleware and cluster computing solutions. The Javadoc for this library is available [here](http://www.javadoc.io/doc/io.onetapbeyond/renjin-r-executor/).
 
 The Renjin interpreter provides a JVM-native execution environment for scientific computing, reproducible research and data analysis based on R. To learn more about the Renjin interpreter, see [here](http://www.renjin.org). To learn more about the general capabilities of the R programming language and environment for statistical computing, see [here](https://www.r-project.org/about.html).
@@ -10,7 +10,7 @@ The Renjin interpreter provides a JVM-native execution environment for scientifi
 ### Gradle Dependency
 
 ```
-compile 'io.onetapbeyond:renjin-r-executor:1.0'
+compile 'io.onetapbeyond:renjin-r-executor:1.1'
 ```
 
 ### Maven Dependency
@@ -19,7 +19,7 @@ compile 'io.onetapbeyond:renjin-r-executor:1.0'
 <dependency>
   <groupId>io.onetapbeyond</groupId>
   <artifactId>renjin-r-executor</artifactId>
-  <version>1.0</version>
+  <version>1.1</version>
 </dependency>
 ```
 
@@ -42,7 +42,7 @@ RenjinTask rTask = Renjin.R()
 						 .input(rInput)
 						 .build();
 RenjinResult rResult = rTask.execute();
-org.renjin.sexp.SEXP rData = rResult.data();
+org.renjin.sexp.SEXP rOutput = rResult.output();
 ```
 
 ### Example Usage
@@ -58,5 +58,5 @@ RenjinTask rTask = Renjin.R()
 						 .input("mean", 5)
 						 .build();
 RenjinResult rResult = rTask.execute();
-org.renjin.sexp.SEXP rData = rResult.data();
+org.renjin.sexp.SEXP rOutput = rResult.output();
 ```
