@@ -1,4 +1,15 @@
+buildscript {
+  repositories {
+    maven { url 'http://repo.spring.io/plugins-release' }
+  }
+  dependencies {
+    classpath 'org.springframework.build.gradle:propdeps-plugin:0.0.7'
+  }
+}
+
 apply plugin: 'java'
+apply plugin: 'propdeps'
+apply plugin: 'propdeps-maven'
 
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
@@ -9,7 +20,7 @@ Renjin R Analytics Integration Library
 
 group = "io.onetapbeyond"
 archivesBaseName = "renjin-r-executor"
-version = "1.1"
+version = "1.2"
 
 repositories {
     jcenter()
@@ -20,7 +31,7 @@ repositories {
 
 dependencies {
     compile 'org.slf4j:slf4j-api:1.7.13'
-    compile 'org.renjin:renjin-script-engine:0.7.0-RC8-SNAPSHOT'
+    provided 'org.renjin:renjin-script-engine:0.8.1890'
     testCompile 'junit:junit:4.12'
 }
 
